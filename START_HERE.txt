@@ -1,0 +1,19 @@
+START HERE
+
+1. Install Python 3.10 or newer.
+   Windows: python.org - check "Add python.exe to PATH" during install.
+   Mac/Linux: see README.md if python3 is not already installed.
+
+2. Open the START file for your computer:
+   Windows: START_WINDOWS.bat
+   Mac: START_MAC.command
+   Linux: START_LINUX.sh
+
+3. The first run asks 3 questions:
+   - your ZIP/postal code
+   - which Duo storage size to watch
+   - optional phone alerts
+
+4. Leave the window open. When it alerts, move fast in the Apple Store app.
+
+Stop the scanner with Ctrl+C.
