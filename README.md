@@ -1,60 +1,78 @@
-# Duo Scanner
+# Duo Scanner - local pickup alerts
 
-**Local pickup alerts for the iPhone Duo.**
+Duo Scanner watches Apple's pickup feed and alerts you when selected iPhone Duo models become available near you.
 
-Duo Scanner watches Apple's retail pickup feed for stores near your ZIP code and alerts you the moment a Duo model you care about flips to available for pickup. It checks on a ~1.2 second cycle, so you hear about stock while it's still there.
+It is **notify-only**. It does not reserve a phone, check out, enter carrier information, or buy anything. When it alerts, move fast in the Apple Store app yourself.
 
-It is **notify-only**. It does not reserve phones, check out, enter carrier info, or buy anything. When it alerts, you move fast in the Apple Store app yourself.
+## Simplest setup
 
-## Download
-
-Download **duo-scanner-local-v3.zip** from this repo, unzip it, and follow the quick start below.
-
-## Quick start
-
-1. Install **Python 3.10 or newer**.
+1. Install Python 3.10 or newer.
    - Windows: install from python.org and check **Add python.exe to PATH**.
    - macOS: run `python3 --version` in Terminal. If Python is missing, install it from python.org.
    - Linux: install Python 3 with your package manager if needed.
+
 2. Open the START file for your computer:
    - Windows: `START_WINDOWS.bat`
-   - Mac: `START_MAC.command` (if macOS blocks it, right-click → Open)
+   - Mac: `START_MAC.command` — if macOS blocks it, right-click it and choose Open.
    - Linux: `START_LINUX.sh`
-3. The first run asks **three questions**:
+
+3. The first run asks three questions:
    - Your ZIP/postal code
    - Which Duo storage size to watch
    - Optional phone alerts
+
 4. Leave the window open while you want alerts. Stop with `Ctrl+C`.
 
-No config editing. Your answers are saved, so later runs start scanning immediately.
+No JSON editing is needed for normal use. The setup saves your answers to `config.json`.
 
 ## Phone alerts
 
-During setup, type `NEW` when asked about ntfy. Duo Scanner creates a private topic name and shows it on screen. Install the free **ntfy** app, subscribe to that exact topic, and alerts hit your phone as push notifications.
+During setup, type `NEW` when asked about ntfy. Duo Scanner will create a private topic name and show it on screen. Install the free **ntfy** app, subscribe to that exact topic, and your phone can receive push alerts.
 
-## Speed, honestly
+You can also press Enter to skip phone alerts and use computer alerts only.
 
-The scanner targets a **1.2 second check cycle**. If Apple's server answers in about a second, the next check starts almost immediately. Your connection and Apple's response time set the real floor, and Apple's store data can lag actual shelf stock — the scanner catches changes the moment Apple's feed changes.
+## Speed
 
-## Requirements
+Duo Scanner targets a **1.2 second cycle**. If Apple's server answers in about one second, the next check starts almost immediately.
 
-- Python 3.10+
-- A computer that stays **awake and online** while scanning (sleep pauses it)
+That is a target, not a guarantee. Your connection and Apple's response time set the floor, and Apple's store data can lag real shelf stock. The scanner catches changes when Apple's feed changes.
 
-## Read the code first
+## If you need to change something later
 
-Every file is in this repo — `duo_scanner.py` is the whole scanner, written with only Python's standard library. Read it before you run it. That's the point of putting it here.
+Run setup again:
 
-## Limitations
+```bash
+python3 duo_scanner.py --config config.json --setup
+```
+
+Windows may need:
+
+```bat
+py -3 duo_scanner.py --config config.json --setup
+```
+
+Test alerts:
+
+```bash
+python3 duo_scanner.py --config config.json --test-alert
+```
+
+Advanced users can edit `config.json` directly. `config.example.json` shows the available fields, including custom part numbers, store filters, webhook alerts, and cooldown timing.
+
+## Honest limitations
 
 - Apple can change or throttle the feed at any time.
-- An alert means Apple's feed showed availability at that moment. It does not hold the phone for you.
-- Carrier verification, account blocks, and checkout speed are still on you.
-- No guarantees — this is a fast set of eyes, not a reservation.
+- If Apple rate-limits your connection (HTTP 541), the scanner backs off automatically and keeps trying on its own. Leave the window open — restarting doesn't help, waiting does.
+- An alert means Apple's feed showed availability at that moment. It does not hold the phone.
+- Carrier verification, account blocks, and checkout speed are still on the buyer.
+- Keep the computer awake and online while scanning. Sleep pauses the scanner.
+- Use it for your own purchase alerts. Check the retailer's terms and do not use it to automate checkout.
 
 ## Files
 
-- `duo_scanner.py` — the scanner
-- `START_HERE.txt` — the short version
-- `START_WINDOWS.bat` / `START_MAC.command` / `START_LINUX.sh` — launchers
-- `config.example.json` — advanced settings (custom part numbers, store filters, webhooks)
+- `START_HERE.txt` - the short version.
+- `START_WINDOWS.bat`, `START_MAC.command`, `START_LINUX.sh` - start here.
+- `duo_scanner.py` - the scanner. Python standard library only.
+- `config.example.json` - advanced/manual settings reference.
+- `config.json` - created by setup.
+- `duo-scanner-state.json` and `duo-scanner.log` - created while running.

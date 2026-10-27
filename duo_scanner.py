@@ -412,6 +412,19 @@ def format_alert(entry: dict[str, Any]) -> tuple[str, str]:
     return title, message
 
 
+def _is_rate_limit(exc: Exception) -> bool:
+    """Apple/Akamai answer HTTP 541 when a connection is being rate-limited."""
+    if getattr(exc, "code", None) == 541:
+        return True
+    text = str(exc)
+    return "HTTP Error 541" in text or " 541:" in text
+
+
+def _rate_limit_delay(streak: int) -> float:
+    """Patient exponential backoff for rate limits: 60s, 120s, 240s... max 10 min."""
+    return min(600.0, 60.0 * (2 ** max(0, streak - 1)))
+
+
 def run_once(feed: AppleFeed, cfg: Config, logger: Logger, state: dict[str, Any]) -> dict[str, Any]:
     feed_json = feed.fetch()
     snap = build_snapshot(feed_json, cfg)
@@ -515,18 +528,33 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     failures = 0
+    rate_limit_streak = 0
     try:
         while True:
             cycle_start = time.monotonic()
             try:
                 state = run_once(feed, cfg, logger, state)
                 failures = 0
+                rate_limit_streak = 0
             except Exception as exc:
-                failures += 1
-                logger.write(f"Scan failed ({failures} in a row): {exc}")
                 feed.close()
                 if args.once:
+                    logger.write(f"Scan failed: {exc}")
                     return 1
+                if _is_rate_limit(exc):
+                    rate_limit_streak += 1
+                    delay = _rate_limit_delay(rate_limit_streak)
+                    if rate_limit_streak == 1:
+                        logger.write(
+                            "Apple is rate-limiting this connection (HTTP 541). "
+                            "The scanner will slow down and keep trying on its own. "
+                            "Restarting will not help — waiting does."
+                        )
+                    logger.write(f"Rate-limited by Apple (HTTP 541). Next check in {int(delay)}s.")
+                    time.sleep(delay)
+                    continue
+                failures += 1
+                logger.write(f"Scan failed ({failures} in a row): {exc}")
                 backoff = min(30.0, max(cfg.min_pause_seconds, failures * 2.0))
                 time.sleep(backoff)
                 continue
