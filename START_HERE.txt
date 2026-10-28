@@ -9,8 +9,9 @@ START HERE
    Mac: START_MAC.command
    Linux: START_LINUX.sh
 
-3. The first run asks 3 questions:
+3. The first run asks 4 questions:
    - your ZIP/postal code
+   - which color to watch (Night Sky, Star White, or both)
    - which Duo storage size to watch
    - optional phone alerts
 

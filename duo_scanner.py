@@ -148,20 +148,22 @@ class Config:
         )
 
 
-PART_PRESETS: dict[str, tuple[str, dict[str, str]]] = {
-    "1": (
-        "All Night Sky sizes",
-        {
-            "MK1F4LL/A": "256GB Night Sky",
-            "MK1H4LL/A": "512GB Night Sky",
-            "MK1L4LL/A": "1TB Night Sky",
-            "MK1R4LL/A": "2TB Night Sky",
-        },
-    ),
-    "2": ("Only 256GB Night Sky", {"MK1F4LL/A": "256GB Night Sky"}),
-    "3": ("Only 512GB Night Sky", {"MK1H4LL/A": "512GB Night Sky"}),
-    "4": ("Only 1TB Night Sky", {"MK1L4LL/A": "1TB Night Sky"}),
-    "5": ("Only 2TB Night Sky", {"MK1R4LL/A": "2TB Night Sky"}),
+SIZES = ["256GB", "512GB", "1TB", "2TB"]
+
+# US part numbers, verified against Apple's own product pages and pickup feed.
+COLOR_PARTS: dict[str, dict[str, tuple[str, str]]] = {
+    "Night Sky": {
+        "256GB": ("MK1F4LL/A", "256GB Night Sky"),
+        "512GB": ("MK1H4LL/A", "512GB Night Sky"),
+        "1TB": ("MK1L4LL/A", "1TB Night Sky"),
+        "2TB": ("MK1R4LL/A", "2TB Night Sky"),
+    },
+    "Star White": {
+        "256GB": ("MK1E4LL/A", "256GB Star White"),
+        "512GB": ("MK1G4LL/A", "512GB Star White"),
+        "1TB": ("MK1J4LL/A", "1TB Star White"),
+        "2TB": ("MK1Q4LL/A", "2TB Star White"),
+    },
 }
 
 
@@ -198,7 +200,7 @@ def _default_config(location: str, parts: dict[str, str], ntfy_topic: str) -> di
 def interactive_setup(config_path: Path) -> None:
     print("\nDuo Scanner setup")
     print("-----------------")
-    print("Answer three quick questions. No JSON editing needed.\n")
+    print("Answer four quick questions. No JSON editing needed.\n")
 
     location = ""
     while not location:
@@ -206,16 +208,36 @@ def interactive_setup(config_path: Path) -> None:
         if location.upper().startswith("YOUR_"):
             location = ""
 
-    print("\n2) Which Duo do you want to watch?")
-    for key, (label, _) in PART_PRESETS.items():
-        default = " (default)" if key == "1" else ""
-        print(f"   {key}. {label}{default}")
-    choice = _ask("Choose 1-5", "1")
-    if choice not in PART_PRESETS:
-        choice = "1"
-    _, parts = PART_PRESETS[choice]
+    print("\n2) Which color do you want to watch?")
+    print("   1. Night Sky (default)")
+    print("   2. Star White")
+    print("   3. Both colors")
+    color_choice = _ask("Choose 1-3", "1")
+    if color_choice not in {"1", "2", "3"}:
+        color_choice = "1"
+    colors = {
+        "1": ["Night Sky"],
+        "2": ["Star White"],
+        "3": ["Night Sky", "Star White"],
+    }[color_choice]
 
-    print("\n3) Phone alerts are optional but recommended.")
+    print("\n3) Which storage size?")
+    print("   1. All sizes (default)")
+    for i, size in enumerate(SIZES, start=2):
+        print(f"   {i}. Only {size}")
+    size_choice = _ask("Choose 1-5", "1")
+    if size_choice in {"2", "3", "4", "5"}:
+        sizes = [SIZES[int(size_choice) - 2]]
+    else:
+        sizes = SIZES
+
+    parts: dict[str, str] = {}
+    for color in colors:
+        for size in sizes:
+            part, label = COLOR_PARTS[color][size]
+            parts[part] = label
+
+    print("\n4) Phone alerts are optional but recommended.")
     print("   Press Enter for computer-only alerts.")
     print("   Type NEW and Duo Scanner will create an ntfy topic for you.")
     print("   Or paste an existing ntfy topic.")

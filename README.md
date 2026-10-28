@@ -16,8 +16,9 @@ It is **notify-only**. It does not reserve a phone, check out, enter carrier inf
    - Mac: `START_MAC.command` — if macOS blocks it, right-click it and choose Open.
    - Linux: `START_LINUX.sh`
 
-3. The first run asks three questions:
+3. The first run asks four questions:
    - Your ZIP/postal code
+   - Which color to watch: Night Sky, Star White, or both
    - Which Duo storage size to watch
    - Optional phone alerts
 
